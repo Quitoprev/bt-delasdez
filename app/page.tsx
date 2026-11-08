@@ -101,13 +101,36 @@ export default function Home() {
           <Image src="/bt-delas-logo.png" alt="BT Delas" width={180} height={180} priority className="drop-shadow-2xl" />
         </div>
 
-        <div className="text-center mt-2 mb-6 text-white anim-in">
+        <div className="text-center mt-2 mb-4 text-white anim-in">
           <p className="font-bold text-amarelo uppercase tracking-widest text-xs">
             Torneio Super 8
           </p>
-          <p className="mt-2 text-white/95 text-sm">
-            Domingo, 13 de dezembro · <b>15h</b>
+        </div>
+
+        {/* CARD DE DATA + HORA — bem destacado */}
+        <div className="bg-azul rounded-3xl p-5 mb-5 text-center shadow-2xl border-4 border-amarelo anim-in">
+          <p className="text-amarelo text-[11px] font-bold uppercase tracking-widest">
+            🏆 Save the date
           </p>
+          <div className="flex items-center justify-center gap-4 mt-2">
+            <div className="text-center">
+              <div className="font-display text-6xl font-extrabold text-white leading-none tabular-nums">
+                13
+              </div>
+              <div className="font-display text-sm font-bold text-amarelo uppercase mt-0.5">
+                dezembro
+              </div>
+            </div>
+            <div className="h-16 w-px bg-white/30" />
+            <div className="text-left">
+              <div className="font-display text-3xl font-extrabold text-white leading-none tabular-nums">
+                15<span className="text-amarelo">h</span>
+              </div>
+              <div className="font-bold text-white/90 text-xs uppercase tracking-wider mt-1">
+                Domingo
+              </div>
+            </div>
+          </div>
         </div>
 
         {tela === "countdown" && <TelaCountdown tempo={tempo} />}
@@ -123,7 +146,7 @@ export default function Home() {
         {(tela === "form" || tela === "countdown") && (
           <div className="mt-6 bg-black/85 rounded-2xl px-6 py-4 flex flex-col items-center shadow-lg">
             <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-2">
-              Realização
+              Arena parceira
             </p>
             <Image
               src="/topsports-logo.png"
