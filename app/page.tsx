@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { TORNEIO } from "@/lib/torneio";
 
@@ -18,7 +19,6 @@ export default function Home() {
   const [erro, setErro] = useState("");
   const [tempo, setTempo] = useState("");
 
-  // Busca vagas e verifica se está aberto
   async function carregarVagas() {
     try {
       const { data, error } = await supabase.rpc("vagas");
@@ -36,30 +36,22 @@ export default function Home() {
     return () => clearInterval(iv);
   }, []);
 
-  // Contagem regressiva até 10/11 12h
   useEffect(() => {
     const atualizar = () => {
       const agora = new Date();
       const diff = TORNEIO.abertura.getTime() - agora.getTime();
-      if (diff <= 0) {
-        setTempo("Inscrições abertas!");
-        carregarVagas();
-        return;
-      }
+      if (diff <= 0) { setTempo("Inscrições abertas!"); carregarVagas(); return; }
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
-      setTempo(
-        `${d}d ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`
-      );
+      setTempo(`${d}d ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`);
     };
     atualizar();
     const iv = setInterval(atualizar, 1000);
     return () => clearInterval(iv);
   }, []);
 
-  // Polling do status da inscrição (pra quando a organização confirmar)
   useEffect(() => {
     if (!inscricaoId || tela !== "pix") return;
     const iv = setInterval(async () => {
@@ -76,16 +68,11 @@ export default function Home() {
     setEnviando(true);
     try {
       const { data, error } = await supabase.rpc("reservar_vaga", {
-        p_nome: nome.trim(),
-        p_tel: tel.trim(),
-        p_email: email.trim() || null,
-        p_cat: cat,
+        p_nome: nome.trim(), p_tel: tel.trim(),
+        p_email: email.trim() || null, p_cat: cat,
       });
       if (error) {
-        if (error.message.includes("inscricoes_fechadas")) {
-          setTela("countdown");
-          return;
-        }
+        if (error.message.includes("inscricoes_fechadas")) { setTela("countdown"); return; }
         throw error;
       }
       const row = Array.isArray(data) ? data[0] : data;
@@ -101,44 +88,39 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-laranja flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <Logo />
+        {/* LOGO OFICIAL */}
+        <div className="flex justify-center py-4">
+          <Image
+            src="/bt-delas-logo.png"
+            alt="BT Delas"
+            width={180}
+            height={180}
+            priority
+            className="drop-shadow-2xl"
+          />
+        </div>
 
         {/* Hero */}
-        <div className="text-center mt-4 mb-6 text-white anim-in">
-          <h1 className="font-display text-4xl md:text-5xl font-extrabold leading-none">
-            Super 8
-          </h1>
-          <p className="mt-2 text-white/90 text-sm">
+        <div className="text-center mt-2 mb-6 text-white anim-in">
+          <p className="font-bold text-amarelo uppercase tracking-widest text-xs">
+            Torneio Super 8
+          </p>
+          <p className="mt-2 text-white/95 text-sm">
             {TORNEIO.data} · {TORNEIO.localCurto}
           </p>
         </div>
 
-        {/* Conteúdo que troca por tela */}
         {tela === "countdown" && <TelaCountdown tempo={tempo} />}
-
         {tela === "form" && (
-          <TelaForm
-            vagas={vagas}
-            cat={cat}
-            setCat={setCat}
-            nome={nome}
-            setNome={setNome}
-            tel={tel}
-            setTel={setTel}
-            email={email}
-            setEmail={setEmail}
-            enviando={enviando}
-            erro={erro}
-            onSubmit={inscrever}
-          />
+          <TelaForm vagas={vagas} cat={cat} setCat={setCat} nome={nome} setNome={setNome}
+            tel={tel} setTel={setTel} email={email} setEmail={setEmail}
+            enviando={enviando} erro={erro} onSubmit={inscrever} />
         )}
-
         {tela === "pix" && <TelaPix cat={cat} />}
         {tela === "espera" && <TelaEspera cat={cat} />}
         {tela === "sucesso" && <TelaSucesso />}
 
-        <footer className="text-center text-white/70 text-xs mt-6">
+        <footer className="text-center text-white/80 text-xs mt-6 font-bold">
           @BTdelas_Mcz
         </footer>
       </div>
@@ -146,37 +128,15 @@ export default function Home() {
   );
 }
 
-/* ================= COMPONENTES ================= */
-
-function Logo() {
-  return (
-    <div className="flex items-center justify-center gap-2 py-2">
-      <div className="bg-white rounded-2xl px-4 py-2 shadow-lg">
-        <span className="font-display text-3xl font-extrabold text-azul">
-          Bt
-        </span>
-        <span className="font-display text-amarelo font-extrabold text-sm align-super ml-0.5">
-          delas
-        </span>
-        <span className="inline-block w-2 h-2 rounded-full bg-pink ml-1" />
-      </div>
-    </div>
-  );
-}
-
 function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-3xl p-6 shadow-2xl anim-in">
-      {children}
-    </div>
-  );
+  return <div className="bg-white rounded-3xl p-6 shadow-2xl anim-in">{children}</div>;
 }
 
 function TelaCountdown({ tempo }: { tempo: string }) {
   return (
     <Card>
       <div className="text-center">
-        <div className="inline-block px-3 py-1 bg-amarelo/20 text-azul font-bold text-xs rounded-full tracking-widest uppercase">
+        <div className="inline-block px-3 py-1 bg-amarelo/30 text-azul font-bold text-xs rounded-full tracking-widest uppercase">
           Em breve
         </div>
         <h2 className="font-display text-2xl font-extrabold text-azul mt-3">
@@ -205,7 +165,6 @@ function TelaForm({
   const lotada = (c: Cat) => vagas && vagas[c] <= 0;
   return (
     <Card>
-      {/* Status de vagas */}
       <div className="flex gap-2 text-xs mb-5">
         <Chip lotada={lotada("C")} label="Cat. C" valor={vagas?.C} total={24} />
         <Chip lotada={lotada("D")} label="Cat. D" valor={vagas?.D} total={16} />
@@ -215,20 +174,10 @@ function TelaForm({
       <Input value={nome} onChange={setNome} placeholder="Seu nome" />
 
       <Label>WhatsApp</Label>
-      <Input
-        value={tel}
-        onChange={setTel}
-        placeholder="(82) 90000-0000"
-        inputMode="tel"
-      />
+      <Input value={tel} onChange={setTel} placeholder="(82) 90000-0000" inputMode="tel" />
 
       <Label>E-mail (opcional)</Label>
-      <Input
-        value={email}
-        onChange={setEmail}
-        placeholder="voce@email.com"
-        inputMode="email"
-      />
+      <Input value={email} onChange={setEmail} placeholder="voce@email.com" inputMode="email" />
 
       <Label>Categoria</Label>
       <div className="grid grid-cols-2 gap-2">
@@ -240,9 +189,8 @@ function TelaForm({
               key={c}
               onClick={() => setCat(c)}
               className={`p-3 rounded-xl border-2 font-bold transition ${
-                sel
-                  ? "border-laranja bg-laranja/10 text-laranja"
-                  : "border-azul/15 text-azul/80 hover:border-laranja/50"
+                sel ? "border-laranja bg-laranja/10 text-laranja"
+                    : "border-azul/15 text-azul/80 hover:border-laranja/50"
               } ${cheia ? "opacity-60" : ""}`}
             >
               <div className="font-display text-lg">Categoria {c}</div>
@@ -279,25 +227,23 @@ function TelaPix({ cat }: { cat: Cat }) {
   return (
     <Card>
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-amarelo/20 text-azul font-bold text-xs rounded-full">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-amarelo/30 text-azul font-bold text-xs rounded-full">
           ⏳ Aguardando pagamento
         </div>
         <h2 className="font-display text-2xl font-extrabold text-azul mt-3">
           Vaga reservada!
         </h2>
         <p className="text-azul/80 text-sm mt-2">
-          Sua vaga na <b>Categoria {cat}</b> está reservada. Agora é só pagar
-          pelo PIX e aguardar a confirmação da organização.
+          Sua vaga na <b>Categoria {cat}</b> está reservada. Faça o PIX e envie o comprovante
+          no WhatsApp da organização pra confirmar.
         </p>
 
         <div className="mt-5 p-4 bg-creme rounded-2xl text-left">
-          <p className="text-xs font-bold text-azul/60 uppercase tracking-wider">
-            Como pagar
-          </p>
+          <p className="text-xs font-bold text-azul/60 uppercase tracking-wider">Como pagar</p>
           <ol className="mt-2 space-y-1.5 text-sm text-azul">
             <li>1. Faça o PIX do valor da inscrição</li>
-            <li>2. Envie o comprovante no WhatsApp da organização</li>
-            <li>3. Sua vaga é confirmada e você recebe aviso</li>
+            <li>2. Envie o comprovante no WhatsApp</li>
+            <li>3. Aguarde a confirmação (esta tela atualiza sozinha)</li>
           </ol>
         </div>
 
@@ -309,10 +255,7 @@ function TelaPix({ cat }: { cat: Cat }) {
           📲 Enviar comprovante no WhatsApp
         </a>
 
-        <p className="text-azul/50 text-xs mt-4">
-          Esta tela atualiza sozinha quando a organização confirmar seu pagamento.
-        </p>
-        <div className="mx-auto mt-3 w-8 h-8 border-2 border-laranja/30 border-t-laranja rounded-full spin" />
+        <div className="mx-auto mt-4 w-8 h-8 border-2 border-laranja/30 border-t-laranja rounded-full spin" />
       </div>
     </Card>
   );
@@ -329,9 +272,8 @@ function TelaEspera({ cat }: { cat: Cat }) {
           Você entrou na lista!
         </h2>
         <p className="text-azul/80 text-sm mt-3">
-          A <b>Categoria {cat}</b> já está cheia, mas você foi registrada na
-          lista de espera. Se abrir vaga, a organização entra em contato pelo
-          seu WhatsApp.
+          A <b>Categoria {cat}</b> já está cheia, mas você foi registrada na lista de espera.
+          Se abrir vaga, a organização entra em contato pelo seu WhatsApp.
         </p>
       </div>
     </Card>
@@ -350,15 +292,14 @@ function TelaSucesso() {
           ✓ Pagamento confirmado
         </div>
         <p className="text-azul/80 text-sm mt-4">
-          Tudo certo! Nos vemos na quadra em <b>13/12</b>. Fique de olho no
-          WhatsApp — a organização enviará mais detalhes na semana do torneio.
+          Tudo certo! Nos vemos na quadra em <b>13/12</b>. Fique de olho no WhatsApp —
+          a organização enviará mais detalhes na semana do torneio.
         </p>
       </div>
     </Card>
   );
 }
 
-/* UI helpers */
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block text-xs font-bold text-azul uppercase tracking-wider mt-4 mb-1.5">
@@ -380,11 +321,10 @@ function Input(props: any) {
 function Chip({ lotada, label, valor, total }: any) {
   return (
     <div
-      className={`flex-1 text-center py-1.5 rounded-full border ${
-        lotada
-          ? "bg-pink/10 border-pink/30 text-pink-500"
-          : "bg-amarelo/15 border-amarelo/40 text-azul"
-      } font-bold`}
+      className={`flex-1 text-center py-1.5 rounded-full border font-bold ${
+        lotada ? "bg-pink/10 border-pink/30 text-pink-500"
+               : "bg-amarelo/15 border-amarelo/40 text-azul"
+      }`}
     >
       {label}: {valor ?? "—"}/{total}
     </div>
