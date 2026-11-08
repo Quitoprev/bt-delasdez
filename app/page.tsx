@@ -251,8 +251,19 @@ function TelaForm({
         {enviando ? "Enviando…" : "Garantir minha vaga"}
       </button>
 
+      {/* AVISO DAY USE — importante */}
+      <div className="mt-4 p-3.5 bg-pink/10 border-l-4 border-pink rounded-xl">
+        <p className="text-[11px] font-bold text-pink-500 uppercase tracking-wider mb-1.5">
+          💡 Atenção · Day use da arena
+        </p>
+        <p className="text-xs text-azul/85 leading-relaxed">
+          Além da inscrição, há o <b>day use da arena de R$ 20,00</b>,
+          pago <b>direto na recepção da Top Sports</b> ao chegar para jogar.
+        </p>
+      </div>
+
       {/* AVISO DE DESISTÊNCIA */}
-      <div className="mt-4 p-3.5 bg-amarelo/15 border-l-4 border-amarelo rounded-xl">
+      <div className="mt-3 p-3.5 bg-amarelo/15 border-l-4 border-amarelo rounded-xl">
         <p className="text-[11px] font-bold text-azul uppercase tracking-wider mb-1.5">
           ⚠️ Política de desistência
         </p>
@@ -386,6 +397,13 @@ function TelaSucesso() {
           Tudo certo! Nos vemos em <b>13/12 às 15h</b> na Top Sports Academy.
           Fique de olho no WhatsApp — a organização enviará mais detalhes na semana do torneio.
         </p>
+
+        <div className="mt-5 p-3 bg-pink/10 rounded-xl border border-pink/20 text-left">
+          <p className="text-xs text-azul/85">
+            💡 <b>Lembrete:</b> Não esqueça do <b>day use de R$ 20,00</b>, pago direto na
+            recepção da arena ao chegar.
+          </p>
+        </div>
       </div>
     </Card>
   );
