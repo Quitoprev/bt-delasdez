@@ -2,7 +2,9 @@
 export const TORNEIO = {
   nome: "Super 8 BT Delas",
   data: "Domingo, 13 de dezembro de 2026",
-  localCurto: "Maceió/AL",
+  dataCurta: "13/12 · 15h",
+  hora: "15h",
+  localCurto: "Top Sports Academy · Maceió",
   abertura: new Date("2026-11-10T12:00:00-03:00"),
   vagas: { C: 24, D: 16 },
   gruposPorCat: { C: 3, D: 2 },

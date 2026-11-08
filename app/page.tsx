@@ -7,7 +7,7 @@ import { TORNEIO } from "@/lib/torneio";
 type Cat = "C" | "D";
 type Tela = "form" | "countdown" | "pix" | "espera" | "sucesso";
 
-// ⚙️ CONFIG PIX — mudar aqui se precisar
+// ⚙️ CONFIG PIX
 const PIX = {
   chave: "bdcdc7b1-9bd7-426c-bed9-b41c61feea9f",
   nome: "BT DELAS",
@@ -106,7 +106,7 @@ export default function Home() {
             Torneio Super 8
           </p>
           <p className="mt-2 text-white/95 text-sm">
-            {TORNEIO.data} · {TORNEIO.localCurto}
+            Domingo, 13 de dezembro · <b>15h</b>
           </p>
         </div>
 
@@ -118,6 +118,22 @@ export default function Home() {
         {tela === "pix" && <TelaPix cat={cat} />}
         {tela === "espera" && <TelaEspera cat={cat} />}
         {tela === "sucesso" && <TelaSucesso />}
+
+        {/* LOGO LOCAL - Top Sports Academy */}
+        {(tela === "form" || tela === "countdown") && (
+          <div className="mt-6 bg-black/85 rounded-2xl px-6 py-4 flex flex-col items-center shadow-lg">
+            <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-2">
+              Realização
+            </p>
+            <Image
+              src="/topsports-logo.png"
+              alt="Top Sports Academy"
+              width={200}
+              height={35}
+              className="h-auto"
+            />
+          </div>
+        )}
 
         <footer className="text-center text-white/80 text-xs mt-6 font-bold">
           @BTdelas_Mcz
@@ -148,9 +164,10 @@ function TelaCountdown({ tempo }: { tempo: string }) {
           Terça, 10 de novembro, às 12h (horário de Maceió)
         </p>
         <div className="mt-5 pt-5 border-t border-azul/10 text-left text-sm text-azul/80 space-y-1.5">
+          <p>🏆 Torneio em <b>13/12 (domingo) às 15h</b></p>
           <p>🎾 <b>24 vagas</b> na Categoria C</p>
           <p>🎾 <b>16 vagas</b> na Categoria D</p>
-          <p>🏆 Torneio em <b>13/12</b> (domingo)</p>
+          <p>💰 Inscrição <b>R$ 30,00</b></p>
         </div>
       </div>
     </Card>
@@ -211,6 +228,18 @@ function TelaForm({
         {enviando ? "Enviando…" : "Garantir minha vaga"}
       </button>
 
+      {/* AVISO DE DESISTÊNCIA */}
+      <div className="mt-4 p-3.5 bg-amarelo/15 border-l-4 border-amarelo rounded-xl">
+        <p className="text-[11px] font-bold text-azul uppercase tracking-wider mb-1.5">
+          ⚠️ Política de desistência
+        </p>
+        <p className="text-xs text-azul/85 leading-relaxed">
+          Em caso de desistência, <b>o valor não é devolvido</b>. Se não houver ninguém na
+          lista de espera, a jogadora que desistiu fica <b>responsável por encontrar uma
+          substituta</b>.
+        </p>
+      </div>
+
       <p className="text-center text-azul/60 text-[11px] mt-3">
         Inscrição R$ {PIX.valor.toFixed(2).replace(".", ",")} · Confirmada após o pagamento.
       </p>
@@ -220,11 +249,7 @@ function TelaForm({
 
 function TelaPix({ cat }: { cat: Cat }) {
   const [copiado, setCopiado] = useState<"chave" | "cola" | null>(null);
-
-  // Gera o código "copia e cola" PIX (EMV padrão BACEN)
   const pixCopiaECola = useMemo(() => gerarPixCopiaECola(PIX), []);
-
-  // QR Code via API pública (não precisa biblioteca)
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(pixCopiaECola)}&margin=0&bgcolor=FFFFFF&color=16166A`;
 
   function copiar(texto: string, qual: "chave" | "cola") {
@@ -247,21 +272,13 @@ function TelaPix({ cat }: { cat: Cat }) {
           <b>{cat}</b> para confirmar sua vaga.
         </p>
 
-        {/* QR CODE */}
         <div className="mt-5 p-4 bg-white border-2 border-azul/10 rounded-2xl">
-          <img
-            src={qrUrl}
-            alt="QR Code PIX"
-            className="mx-auto"
-            width={240}
-            height={240}
-          />
+          <img src={qrUrl} alt="QR Code PIX" className="mx-auto" width={240} height={240} />
           <p className="text-[11px] text-azul/60 mt-2 font-bold uppercase tracking-wider">
             Escaneie no app do seu banco
           </p>
         </div>
 
-        {/* COPIA E COLA */}
         <button
           onClick={() => copiar(pixCopiaECola, "cola")}
           className="w-full mt-4 bg-azul hover:bg-azul-600 text-white font-bold py-3.5 rounded-xl transition"
@@ -269,7 +286,6 @@ function TelaPix({ cat }: { cat: Cat }) {
           {copiado === "cola" ? "✓ Copiado!" : "📋 Copiar código PIX (copia e cola)"}
         </button>
 
-        {/* CHAVE AVULSA */}
         <div className="mt-3 p-3 bg-creme rounded-xl">
           <p className="text-[11px] font-bold text-azul/60 uppercase tracking-wider">
             Ou pague pela chave PIX
@@ -287,7 +303,6 @@ function TelaPix({ cat }: { cat: Cat }) {
           </div>
         </div>
 
-        {/* INSTRUÇÕES */}
         <div className="mt-5 p-4 bg-amarelo/10 rounded-2xl text-left border border-amarelo/30">
           <p className="text-xs font-bold text-azul uppercase tracking-wider">
             📲 Após o pagamento
@@ -345,8 +360,8 @@ function TelaSucesso() {
           ✓ Pagamento confirmado
         </div>
         <p className="text-azul/80 text-sm mt-4">
-          Tudo certo! Nos vemos na quadra em <b>13/12</b>. Fique de olho no WhatsApp —
-          a organização enviará mais detalhes na semana do torneio.
+          Tudo certo! Nos vemos em <b>13/12 às 15h</b> na Top Sports Academy.
+          Fique de olho no WhatsApp — a organização enviará mais detalhes na semana do torneio.
         </p>
       </div>
     </Card>
@@ -384,13 +399,9 @@ function Chip({ lotada, label, valor, total }: any) {
   );
 }
 
-/* ============================================================
-   Gerador de PIX "copia e cola" (padrão EMV BACEN)
-   Produz código que qualquer banco brasileiro reconhece
-============================================================ */
+/* Gerador de PIX "copia e cola" (padrão EMV BACEN) */
 function gerarPixCopiaECola(p: { chave: string; nome: string; cidade: string; valor: number }) {
   const fmt = (id: string, val: string) => id + String(val.length).padStart(2, "0") + val;
-
   const merchantAccount = fmt("00", "br.gov.bcb.pix") + fmt("01", p.chave);
   const payload =
     fmt("00", "01") +
@@ -403,10 +414,8 @@ function gerarPixCopiaECola(p: { chave: string; nome: string; cidade: string; va
     fmt("60", p.cidade.toUpperCase().slice(0, 15)) +
     fmt("62", fmt("05", "***")) +
     "6304";
-
   return payload + crc16(payload);
 }
-
 function crc16(str: string) {
   let crc = 0xffff;
   for (let i = 0; i < str.length; i++) {
