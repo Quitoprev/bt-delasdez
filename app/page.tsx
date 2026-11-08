@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { TORNEIO } from "@/lib/torneio";
@@ -7,12 +7,19 @@ import { TORNEIO } from "@/lib/torneio";
 type Cat = "C" | "D";
 type Tela = "form" | "countdown" | "pix" | "espera" | "sucesso";
 
+// ⚙️ CONFIG PIX — mudar aqui se precisar
+const PIX = {
+  chave: "bdcdc7b1-9bd7-426c-bed9-b41c61feea9f",
+  nome: "BT DELAS",
+  cidade: "MACEIO",
+  valor: 30.00,
+};
+
 export default function Home() {
   const [tela, setTela] = useState<Tela>("form");
   const [cat, setCat] = useState<Cat>("C");
   const [nome, setNome] = useState("");
   const [tel, setTel] = useState("");
-  const [email, setEmail] = useState("");
   const [vagas, setVagas] = useState<{ C: number; D: number; abertas: boolean } | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [inscricaoId, setInscricaoId] = useState<string | null>(null);
@@ -68,8 +75,10 @@ export default function Home() {
     setEnviando(true);
     try {
       const { data, error } = await supabase.rpc("reservar_vaga", {
-        p_nome: nome.trim(), p_tel: tel.trim(),
-        p_email: email.trim() || null, p_cat: cat,
+        p_nome: nome.trim(),
+        p_tel: tel.trim(),
+        p_email: null,
+        p_cat: cat,
       });
       if (error) {
         if (error.message.includes("inscricoes_fechadas")) { setTela("countdown"); return; }
@@ -88,19 +97,10 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-laranja flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* LOGO OFICIAL */}
         <div className="flex justify-center py-4">
-          <Image
-            src="/bt-delas-logo.png"
-            alt="BT Delas"
-            width={180}
-            height={180}
-            priority
-            className="drop-shadow-2xl"
-          />
+          <Image src="/bt-delas-logo.png" alt="BT Delas" width={180} height={180} priority className="drop-shadow-2xl" />
         </div>
 
-        {/* Hero */}
         <div className="text-center mt-2 mb-6 text-white anim-in">
           <p className="font-bold text-amarelo uppercase tracking-widest text-xs">
             Torneio Super 8
@@ -113,8 +113,7 @@ export default function Home() {
         {tela === "countdown" && <TelaCountdown tempo={tempo} />}
         {tela === "form" && (
           <TelaForm vagas={vagas} cat={cat} setCat={setCat} nome={nome} setNome={setNome}
-            tel={tel} setTel={setTel} email={email} setEmail={setEmail}
-            enviando={enviando} erro={erro} onSubmit={inscrever} />
+            tel={tel} setTel={setTel} enviando={enviando} erro={erro} onSubmit={inscrever} />
         )}
         {tela === "pix" && <TelaPix cat={cat} />}
         {tela === "espera" && <TelaEspera cat={cat} />}
@@ -159,8 +158,7 @@ function TelaCountdown({ tempo }: { tempo: string }) {
 }
 
 function TelaForm({
-  vagas, cat, setCat, nome, setNome, tel, setTel, email, setEmail,
-  enviando, erro, onSubmit,
+  vagas, cat, setCat, nome, setNome, tel, setTel, enviando, erro, onSubmit,
 }: any) {
   const lotada = (c: Cat) => vagas && vagas[c] <= 0;
   return (
@@ -175,9 +173,6 @@ function TelaForm({
 
       <Label>WhatsApp</Label>
       <Input value={tel} onChange={setTel} placeholder="(82) 90000-0000" inputMode="tel" />
-
-      <Label>E-mail (opcional)</Label>
-      <Input value={email} onChange={setEmail} placeholder="voce@email.com" inputMode="email" />
 
       <Label>Categoria</Label>
       <div className="grid grid-cols-2 gap-2">
@@ -217,13 +212,27 @@ function TelaForm({
       </button>
 
       <p className="text-center text-azul/60 text-[11px] mt-3">
-        A vaga é confirmada após o pagamento.
+        Inscrição R$ {PIX.valor.toFixed(2).replace(".", ",")} · Confirmada após o pagamento.
       </p>
     </Card>
   );
 }
 
 function TelaPix({ cat }: { cat: Cat }) {
+  const [copiado, setCopiado] = useState<"chave" | "cola" | null>(null);
+
+  // Gera o código "copia e cola" PIX (EMV padrão BACEN)
+  const pixCopiaECola = useMemo(() => gerarPixCopiaECola(PIX), []);
+
+  // QR Code via API pública (não precisa biblioteca)
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(pixCopiaECola)}&margin=0&bgcolor=FFFFFF&color=16166A`;
+
+  function copiar(texto: string, qual: "chave" | "cola") {
+    navigator.clipboard.writeText(texto);
+    setCopiado(qual);
+    setTimeout(() => setCopiado(null), 2000);
+  }
+
   return (
     <Card>
       <div className="text-center">
@@ -234,28 +243,72 @@ function TelaPix({ cat }: { cat: Cat }) {
           Vaga reservada!
         </h2>
         <p className="text-azul/80 text-sm mt-2">
-          Sua vaga na <b>Categoria {cat}</b> está reservada. Faça o PIX e envie o comprovante
-          no WhatsApp da organização pra confirmar.
+          Pague o PIX de <b>R$ {PIX.valor.toFixed(2).replace(".", ",")}</b> na Categoria{" "}
+          <b>{cat}</b> para confirmar sua vaga.
         </p>
 
-        <div className="mt-5 p-4 bg-creme rounded-2xl text-left">
-          <p className="text-xs font-bold text-azul/60 uppercase tracking-wider">Como pagar</p>
-          <ol className="mt-2 space-y-1.5 text-sm text-azul">
-            <li>1. Faça o PIX do valor da inscrição</li>
-            <li>2. Envie o comprovante no WhatsApp</li>
-            <li>3. Aguarde a confirmação (esta tela atualiza sozinha)</li>
-          </ol>
+        {/* QR CODE */}
+        <div className="mt-5 p-4 bg-white border-2 border-azul/10 rounded-2xl">
+          <img
+            src={qrUrl}
+            alt="QR Code PIX"
+            className="mx-auto"
+            width={240}
+            height={240}
+          />
+          <p className="text-[11px] text-azul/60 mt-2 font-bold uppercase tracking-wider">
+            Escaneie no app do seu banco
+          </p>
+        </div>
+
+        {/* COPIA E COLA */}
+        <button
+          onClick={() => copiar(pixCopiaECola, "cola")}
+          className="w-full mt-4 bg-azul hover:bg-azul-600 text-white font-bold py-3.5 rounded-xl transition"
+        >
+          {copiado === "cola" ? "✓ Copiado!" : "📋 Copiar código PIX (copia e cola)"}
+        </button>
+
+        {/* CHAVE AVULSA */}
+        <div className="mt-3 p-3 bg-creme rounded-xl">
+          <p className="text-[11px] font-bold text-azul/60 uppercase tracking-wider">
+            Ou pague pela chave PIX
+          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <code className="flex-1 text-xs text-azul font-mono text-left truncate">
+              {PIX.chave}
+            </code>
+            <button
+              onClick={() => copiar(PIX.chave, "chave")}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-laranja text-white hover:bg-laranja-600 whitespace-nowrap"
+            >
+              {copiado === "chave" ? "✓" : "Copiar"}
+            </button>
+          </div>
+        </div>
+
+        {/* INSTRUÇÕES */}
+        <div className="mt-5 p-4 bg-amarelo/10 rounded-2xl text-left border border-amarelo/30">
+          <p className="text-xs font-bold text-azul uppercase tracking-wider">
+            📲 Após o pagamento
+          </p>
+          <p className="text-sm text-azul/80 mt-1.5">
+            Envie o comprovante pelo WhatsApp pra organização confirmar sua vaga mais rápido.
+          </p>
         </div>
 
         <a
-          href="https://wa.me/5582996001624?text=Oi!%20Fiz%20minha%20inscri%C3%A7%C3%A3o%20no%20Super%208%20BT%20Delas%20e%20quero%20enviar%20o%20comprovante%20do%20PIX."
+          href="https://wa.me/5582996001624?text=Oi!%20Fiz%20minha%20inscri%C3%A7%C3%A3o%20no%20Super%208%20BT%20Delas%20e%20estou%20enviando%20o%20comprovante%20do%20PIX."
           target="_blank"
-          className="block mt-5 bg-azul hover:bg-azul-600 text-white font-bold py-4 rounded-xl transition"
+          className="block mt-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition"
         >
-          📲 Enviar comprovante no WhatsApp
+          📲 Enviar comprovante
         </a>
 
         <div className="mx-auto mt-4 w-8 h-8 border-2 border-laranja/30 border-t-laranja rounded-full spin" />
+        <p className="text-azul/50 text-[11px] mt-2">
+          Esta tela atualiza sozinha quando o pagamento for confirmado
+        </p>
       </div>
     </Card>
   );
@@ -329,4 +382,38 @@ function Chip({ lotada, label, valor, total }: any) {
       {label}: {valor ?? "—"}/{total}
     </div>
   );
+}
+
+/* ============================================================
+   Gerador de PIX "copia e cola" (padrão EMV BACEN)
+   Produz código que qualquer banco brasileiro reconhece
+============================================================ */
+function gerarPixCopiaECola(p: { chave: string; nome: string; cidade: string; valor: number }) {
+  const fmt = (id: string, val: string) => id + String(val.length).padStart(2, "0") + val;
+
+  const merchantAccount = fmt("00", "br.gov.bcb.pix") + fmt("01", p.chave);
+  const payload =
+    fmt("00", "01") +
+    fmt("26", merchantAccount) +
+    fmt("52", "0000") +
+    fmt("53", "986") +
+    fmt("54", p.valor.toFixed(2)) +
+    fmt("58", "BR") +
+    fmt("59", p.nome.toUpperCase().slice(0, 25)) +
+    fmt("60", p.cidade.toUpperCase().slice(0, 15)) +
+    fmt("62", fmt("05", "***")) +
+    "6304";
+
+  return payload + crc16(payload);
+}
+
+function crc16(str: string) {
+  let crc = 0xffff;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = crc & 0x8000 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
 }
