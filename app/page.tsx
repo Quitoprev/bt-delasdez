@@ -270,7 +270,8 @@ function TelaForm({
         <p className="text-xs text-azul/85 leading-relaxed">
           Em caso de desistência, <b>o valor não é devolvido</b>. Se não houver ninguém na
           lista de espera, a jogadora que desistiu fica <b>responsável por encontrar uma
-          substituta</b>.
+          substituta</b>. A troca deve ser <b>comunicada à organização</b> para que a nova
+          inscrição seja realizada.
         </p>
       </div>
 
