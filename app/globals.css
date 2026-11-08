@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap");
+
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  background: #FFF8F1;
+  color: #161661;
+  font-family: "DM Sans", ui-sans-serif, system-ui;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: "Bricolage Grotesque", ui-sans-serif, system-ui;
+  letter-spacing: -0.02em;
+}
+
+/* animação suave na troca de telas */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-in { animation: slideUp .35s ease both; }
+
+/* spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
