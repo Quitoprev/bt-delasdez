@@ -414,7 +414,7 @@ function TelaPix({ cat }: { cat: Cat }) {
         </div>
 
         <a
-          href="https://wa.me/5582996001624?text=Oi!%20Fiz%20minha%20inscri%C3%A7%C3%A3o%20no%20Super%208%20BT%20Delas%20e%20estou%20enviando%20o%20comprovante%20do%20PIX."
+          href="https://wa.me/5582996281922?text=Oi!%20Fiz%20minha%20inscri%C3%A7%C3%A3o%20no%20Super%208%20BT%20Delas%20e%20estou%20enviando%20o%20comprovante%20do%20PIX."
           target="_blank"
           className="block mt-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition"
         >
