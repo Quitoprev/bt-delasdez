@@ -184,7 +184,7 @@ function TelaCountdown({ tempo }: { tempo: string }) {
           {tempo || "…"}
         </div>
         <p className="text-azul/70 text-sm mt-3">
-          Terça, 10 de novembro, às 12h (horário de Maceió)
+          Segunda, 9 de novembro, às 12h (horário de Maceió)
         </p>
         <div className="mt-5 pt-5 border-t border-azul/10 text-left text-sm text-azul/80 space-y-1.5">
           <p>🏆 Torneio em <b>13/12 (domingo) às 15h</b></p>
