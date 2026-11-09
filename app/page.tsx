@@ -282,10 +282,54 @@ function TelaForm({
   );
 }
 
+function Confete() {
+  // 40 pecinhas caindo, com posições e cores aleatórias mas estáveis
+  const cores = ["#FF6A1A", "#2A2A9E", "#FF3D8B", "#F7C948", "#FFFFFF"];
+  const pecas = useMemo(
+    () =>
+      Array.from({ length: 40 }).map((_, i) => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 1.2,
+        duration: 2.4 + Math.random() * 1.2,
+        cor: cores[i % cores.length],
+        tamanho: 8 + Math.random() * 8,
+        rot: Math.random() * 360,
+      })),
+    []
+  );
+  return (
+    <div className="confete-wrap" aria-hidden="true">
+      {pecas.map((p, i) => (
+        <span
+          key={i}
+          className="confete"
+          style={{
+            left: `${p.left}%`,
+            background: p.cor,
+            width: `${p.tamanho}px`,
+            height: `${p.tamanho * 1.4}px`,
+            transform: `rotate(${p.rot}deg)`,
+            animationDelay: `${p.delay}s, ${p.delay}s`,
+            animationDuration: `${p.duration}s, 1.2s`,
+            borderRadius: i % 3 === 0 ? "50%" : "2px",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function TelaPix({ cat }: { cat: Cat }) {
   const [copiado, setCopiado] = useState<"chave" | "cola" | null>(null);
+  const [mostrarConfete, setMostrarConfete] = useState(true);
   const pixCopiaECola = useMemo(() => gerarPixCopiaECola(PIX), []);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(pixCopiaECola)}&margin=0&bgcolor=FFFFFF&color=16166A`;
+
+  // Remove os confetes do DOM após terminar (perf)
+  useEffect(() => {
+    const t = setTimeout(() => setMostrarConfete(false), 4500);
+    return () => clearTimeout(t);
+  }, []);
 
   function copiar(texto: string, qual: "chave" | "cola") {
     navigator.clipboard.writeText(texto);
@@ -294,25 +338,46 @@ function TelaPix({ cat }: { cat: Cat }) {
   }
 
   return (
-    <Card>
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-amarelo/30 text-azul font-bold text-xs rounded-full">
-          ⏳ Aguardando pagamento
-        </div>
-        <h2 className="font-display text-2xl font-extrabold text-azul mt-3">
-          Vaga reservada!
-        </h2>
-        <p className="text-azul/80 text-sm mt-2">
-          Pague o PIX de <b>R$ {PIX.valor.toFixed(2).replace(".", ",")}</b> na Categoria{" "}
-          <b>{cat}</b> para confirmar sua vaga.
-        </p>
-
-        <div className="mt-5 p-4 bg-white border-2 border-azul/10 rounded-2xl">
-          <img src={qrUrl} alt="QR Code PIX" className="mx-auto" width={240} height={240} />
-          <p className="text-[11px] text-azul/60 mt-2 font-bold uppercase tracking-wider">
-            Escaneie no app do seu banco
+    <>
+      {mostrarConfete && <Confete />}
+      <Card>
+        <div className="text-center">
+          <div className="text-5xl mb-1">🎉</div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-amarelo/30 text-azul font-bold text-xs rounded-full">
+            ⏳ Aguardando pagamento
+          </div>
+          <h2 className="font-display text-2xl font-extrabold text-azul mt-3">
+            Vaga reservada!
+          </h2>
+          <p className="text-azul/80 text-sm mt-2">
+            Pague o PIX de <b>R$ {PIX.valor.toFixed(2).replace(".", ",")}</b> na Categoria{" "}
+            <b>{cat}</b> para confirmar sua vaga.
           </p>
-        </div>
+
+          {/* 🎁 BRINDE EXCLUSIVO — pagamento em 24h */}
+          <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-amarelo via-amarelo to-laranja border-2 border-amarelo pulse-glow">
+            <div className="flex items-center justify-center gap-2 text-azul">
+              <span className="text-2xl">🎁</span>
+              <div className="text-left">
+                <p className="font-display font-extrabold text-sm leading-tight">
+                  Brinde exclusivo!
+                </p>
+                <p className="text-[11px] font-bold leading-tight">
+                  Pague em até <b>24h</b> e garanta o seu
+                </p>
+              </div>
+            </div>
+            <p className="text-[10px] text-azul/80 font-bold mt-2 pt-2 border-t border-azul/15">
+              * Brinde intransferível
+            </p>
+          </div>
+
+          <div className="mt-5 p-4 bg-white border-2 border-azul/10 rounded-2xl">
+            <img src={qrUrl} alt="QR Code PIX" className="mx-auto" width={240} height={240} />
+            <p className="text-[11px] text-azul/60 mt-2 font-bold uppercase tracking-wider">
+              Escaneie no app do seu banco
+            </p>
+          </div>
 
         <button
           onClick={() => copiar(pixCopiaECola, "cola")}
@@ -361,6 +426,7 @@ function TelaPix({ cat }: { cat: Cat }) {
         </p>
       </div>
     </Card>
+    </>
   );
 }
 
