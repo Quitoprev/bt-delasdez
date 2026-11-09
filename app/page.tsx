@@ -257,8 +257,9 @@ function TelaForm({
           💡 Atenção · Day use da arena
         </p>
         <p className="text-xs text-azul/85 leading-relaxed">
-          Além da inscrição, há o <b>day use da arena de R$ 20,00</b>,
-          pago <b>direto na recepção da Top Sports</b> ao chegar para jogar.
+          Além da inscrição, há o <b>day use da arena de R$ 10,00</b>
+          (valor especial para atletas participantes), pago <b>direto na
+          recepção da Top Sports</b> ao chegar para jogar.
         </p>
       </div>
 
@@ -467,8 +468,8 @@ function TelaSucesso() {
 
         <div className="mt-5 p-3 bg-pink/10 rounded-xl border border-pink/20 text-left">
           <p className="text-xs text-azul/85">
-            💡 <b>Lembrete:</b> Não esqueça do <b>day use de R$ 20,00</b>, pago direto na
-            recepção da arena ao chegar.
+            💡 <b>Lembrete:</b> Não esqueça do <b>day use de R$ 10,00</b> (valor
+            especial pra atletas), pago direto na recepção da arena ao chegar.
           </p>
         </div>
       </div>
