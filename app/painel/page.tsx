@@ -10,6 +10,12 @@ type Insc = {
 };
 type GrupoJog = { id: string; nome: string };
 type Grupos = { C: GrupoJog[][]; D: GrupoJog[][] };
+type Atleta = {
+  id: string; nome: string; telefone: string; email: string | null;
+  categoria: "C" | "D" | "indefinida" | null;
+  cidade: string | null; bairro: string | null;
+  aniversario: string | null; created_at: string;
+};
 
 export default function Painel() {
   const [logado, setLogado] = useState<boolean | null>(null);
@@ -80,12 +86,14 @@ export default function Painel() {
 }
 
 function PainelConteudo() {
-  const [tab, setTab] = useState<"part" | "grupos" | "jogos">("part");
+  const [tab, setTab] = useState<"part" | "grupos" | "jogos" | "clube">("part");
   const [inscricoes, setInscricoes] = useState<Insc[]>([]);
   const [grupos, setGrupos] = useState<Grupos>({ C: [], D: [] });
   const [results, setResults] = useState<Record<string, number>>({});
   const [filtro, setFiltro] = useState<string>("all");
   const [toast, setToast] = useState("");
+  const [atletas, setAtletas] = useState<Atleta[]>([]);
+  const [buscaClube, setBuscaClube] = useState("");
 
   async function carregar() {
     const { data: ins } = await supabase.from("inscricoes").select("*").order("created_at");
@@ -98,6 +106,10 @@ function PainelConteudo() {
       if (e.chave === "resultados") r = e.valor;
     });
     setGrupos(g); setResults(r);
+    // Atletas do Clube (pode não existir ainda se a tabela não foi criada)
+    const { data: atl, error: errAtl } = await supabase
+      .from("atletas").select("*").order("created_at", { ascending: false });
+    if (!errAtl) setAtletas((atl as Atleta[]) || []);
   }
 
   useEffect(() => {
@@ -105,9 +117,31 @@ function PainelConteudo() {
     const ch = supabase.channel("rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "inscricoes" }, carregar)
       .on("postgres_changes", { event: "*", schema: "public", table: "estado" }, carregar)
+      .on("postgres_changes", { event: "*", schema: "public", table: "atletas" }, carregar)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
+
+  async function removerAtleta(id: string, nome: string) {
+    if (!confirm(`Remover ${nome} do Clube?`)) return;
+    const { error } = await supabase.from("atletas").delete().eq("id", id);
+    if (error) return mostrarToast("Erro: " + error.message);
+    mostrarToast("Removida do Clube");
+  }
+
+  function exportarClubeCSV() {
+    const header = "Nome,WhatsApp,Email,Categoria,Cidade,Bairro,Aniversario,Cadastro\n";
+    const body = atletas.map(a => [
+      a.nome, a.telefone, a.email || "", a.categoria || "",
+      a.cidade || "", a.bairro || "", a.aniversario || "",
+      new Date(a.created_at).toLocaleString("pt-BR"),
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([header + body], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `clube-bt-delas.csv`; a.click();
+    URL.revokeObjectURL(url);
+  }
 
   function mostrarToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2500); }
 
@@ -252,6 +286,7 @@ function PainelConteudo() {
           { k: "part", l: "Participantes" },
           { k: "grupos", l: "Grupos" },
           { k: "jogos", l: "Jogos & Ranking" },
+          { k: "clube", l: "💛 Comunidade" },
         ].map((t) => (
           <button
             key={t.k}
@@ -502,6 +537,129 @@ function PainelConteudo() {
             {!grupos.C.length && !grupos.D.length && (
               <div className="bg-white rounded-3xl p-10 text-center text-azul/60 text-sm">
                 Sorteie os grupos na aba <b>Grupos</b> para liberar os jogos.
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "clube" && (
+          <div className="bg-white rounded-3xl p-5 shadow-lg">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="font-display text-2xl font-extrabold text-azul">
+                  💛 Clube BT Delas
+                </h2>
+                <p className="text-sm text-azul/70 mt-1">
+                  Atletas cadastradas na comunidade — base para prioridade, descontos e novidades.
+                </p>
+              </div>
+              <button
+                onClick={exportarClubeCSV}
+                disabled={atletas.length === 0}
+                className="bg-azul hover:bg-azul-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
+              >
+                ⬇ Exportar CSV
+              </button>
+            </div>
+
+            {/* Stats rapidinhas */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+              <Stat titulo="Total de membras" valor={String(atletas.length)} />
+              <Stat
+                titulo="Cat. C"
+                valor={String(atletas.filter(a => a.categoria === "C").length)}
+              />
+              <Stat
+                titulo="Cat. D"
+                valor={String(atletas.filter(a => a.categoria === "D").length)}
+              />
+              <Stat
+                titulo="Últimos 7 dias"
+                valor={String(
+                  atletas.filter(a => {
+                    const diff = Date.now() - new Date(a.created_at).getTime();
+                    return diff < 7 * 24 * 3600 * 1000;
+                  }).length
+                )}
+              />
+            </div>
+
+            {/* Busca */}
+            <input
+              value={buscaClube}
+              onChange={e => setBuscaClube(e.target.value)}
+              placeholder="🔍 Buscar por nome, WhatsApp, cidade…"
+              className="w-full mt-5 px-4 py-3 bg-creme border-2 border-azul/10 rounded-xl text-azul font-medium focus:outline-none focus:border-laranja"
+            />
+
+            {/* Lista */}
+            {atletas.length === 0 ? (
+              <div className="text-center py-12 text-azul/60 text-sm">
+                <div className="text-4xl mb-2">💛</div>
+                Ainda não há atletas cadastradas no Clube.
+                <br />
+                Compartilhe o link <b className="text-laranja">/cadastro</b> para começar.
+              </div>
+            ) : (
+              <div className="overflow-x-auto mt-4">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[11px] uppercase text-azul/60 border-b border-azul/10">
+                      <th className="text-left py-2 px-1">#</th>
+                      <th className="text-left py-2 px-1">Nome</th>
+                      <th className="text-left py-2 px-1">WhatsApp</th>
+                      <th className="text-left py-2 px-1">Cat.</th>
+                      <th className="text-left py-2 px-1">Cidade/Bairro</th>
+                      <th className="text-left py-2 px-1">Aniversário</th>
+                      <th className="text-left py-2 px-1">Cadastro</th>
+                      <th className="text-left py-2 px-1"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {atletas
+                      .filter(a => {
+                        if (!buscaClube) return true;
+                        const q = buscaClube.toLowerCase();
+                        return (
+                          a.nome.toLowerCase().includes(q) ||
+                          (a.telefone || "").includes(q) ||
+                          (a.cidade || "").toLowerCase().includes(q) ||
+                          (a.bairro || "").toLowerCase().includes(q)
+                        );
+                      })
+                      .map((a, i) => (
+                        <tr key={a.id} className="border-b border-azul/5">
+                          <td className="py-3 px-1 text-azul/50">{i + 1}</td>
+                          <td className="py-3 px-1 font-bold text-azul">{a.nome}</td>
+                          <td className="py-3 px-1 text-azul/70">{a.telefone}</td>
+                          <td className="py-3 px-1 font-display font-extrabold text-laranja">
+                            {a.categoria === "indefinida" ? "—" : a.categoria || "—"}
+                          </td>
+                          <td className="py-3 px-1 text-azul/70">
+                            {[a.cidade, a.bairro].filter(Boolean).join(" / ") || "—"}
+                          </td>
+                          <td className="py-3 px-1 text-azul/70">
+                            {a.aniversario
+                              ? new Date(a.aniversario + "T00:00:00").toLocaleDateString("pt-BR", {
+                                  day: "2-digit", month: "2-digit",
+                                })
+                              : "—"}
+                          </td>
+                          <td className="py-3 px-1 text-azul/60 text-xs">
+                            {new Date(a.created_at).toLocaleDateString("pt-BR")}
+                          </td>
+                          <td className="py-3 px-1">
+                            <button
+                              onClick={() => removerAtleta(a.id, a.nome)}
+                              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-white border-2 border-pink/20 text-pink-500"
+                            >
+                              🗑
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
