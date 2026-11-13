@@ -17,6 +17,32 @@ type Atleta = {
   aniversario: string | null; created_at: string;
 };
 
+/** Gera link do WhatsApp a partir do telefone — normaliza, adiciona 55 se faltar */
+function waLink(telefone: string | null | undefined): string | null {
+  if (!telefone) return null;
+  let digits = telefone.replace(/\D/g, "");
+  if (digits.length < 10) return null;
+  if (!digits.startsWith("55")) digits = "55" + digits;
+  return `https://wa.me/${digits}`;
+}
+
+/** Botão pequeno verde de WhatsApp */
+function BotaoWA({ telefone }: { telefone: string | null | undefined }) {
+  const link = waLink(telefone);
+  if (!link) return null;
+  return (
+    <a
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Abrir WhatsApp"
+      className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm ml-2 transition align-middle"
+    >
+      💬
+    </a>
+  );
+}
+
 export default function Painel() {
   const [logado, setLogado] = useState<boolean | null>(null);
   const [email, setEmail] = useState("");
@@ -342,7 +368,10 @@ function PainelConteudo() {
                       <tr key={p.id} className="border-b border-azul/5">
                         <td className="py-3 px-1 text-azul/50">{i + 1}</td>
                         <td className="py-3 px-1 font-bold text-azul">{p.nome}</td>
-                        <td className="py-3 px-1 text-azul/70">{p.telefone || "—"}</td>
+                        <td className="py-3 px-1 text-azul/70 whitespace-nowrap">
+                          {p.telefone || "—"}
+                          <BotaoWA telefone={p.telefone} />
+                        </td>
                         <td className="py-3 px-1 font-display font-extrabold text-laranja">
                           {p.categoria}
                         </td>
@@ -631,7 +660,10 @@ function PainelConteudo() {
                         <tr key={a.id} className="border-b border-azul/5">
                           <td className="py-3 px-1 text-azul/50">{i + 1}</td>
                           <td className="py-3 px-1 font-bold text-azul">{a.nome}</td>
-                          <td className="py-3 px-1 text-azul/70">{a.telefone}</td>
+                          <td className="py-3 px-1 text-azul/70 whitespace-nowrap">
+                            {a.telefone}
+                            <BotaoWA telefone={a.telefone} />
+                          </td>
                           <td className="py-3 px-1 font-display font-extrabold text-laranja">
                             {a.categoria === "indefinida" ? "—" : a.categoria || "—"}
                           </td>

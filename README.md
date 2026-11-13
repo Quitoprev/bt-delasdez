@@ -1,138 +1,97 @@
-# 🎾 BT Delas · Super 8 — Passo a Passo COMPLETO
+# 🎾 BT Delas · Super 8
 
-**Siga estes passos NA ORDEM. Não pule nenhum.**
+Sistema de inscrições do torneio Super 8 de Beach Tennis.
 
----
+- **Página pública** (link do WhatsApp): mostra contagem regressiva até 10/11 12h, depois abre inscrições.
+- **Painel da organização** (`/painel`): login, pagamentos, sorteio dos grupos, ranking do Super 8.
 
-## 📦 O que você tem em mãos
-
-- `bt-delas.zip` → o projeto todo
-- `README-COMECE-AQUI.md` → este arquivo
-
-## 🗑 Passo 0 — Limpar o que estava quebrado
-
-### 0A. Deletar o projeto da Vercel
-1. Entre em vercel.com → projeto **bt-delas**
-2. **Settings** (topo)
-3. Role até o fim → **Delete Project**
-4. Digite o nome pra confirmar → deletar
-
-### 0B. Deletar o repositório do GitHub
-1. Entre em github.com → repo **bt-delas** (`Quitoprev/bt-delas`)
-2. **Settings** (topo do repo)
-3. Role até o fim → seção vermelha "Danger Zone" → **Delete this repository**
-4. Digite `Quitoprev/bt-delas` pra confirmar
+**Stack:** Next.js 14 + Supabase + Vercel.
 
 ---
 
-## 💻 Passo 1 — Instalar o GitHub Desktop
+## 📋 Passo a passo (do zero ao site no ar)
 
-Isso vai fazer o upload funcionar de verdade. Drag-and-drop pelo navegador tem falhado.
+### 1. Schema no Supabase
+Já feito! Seu projeto `bt-delas` em `zegrmnubfjlvokmdfkqe.supabase.co` já está com as tabelas e funções.
 
-1. Baixe em **https://desktop.github.com** (grátis, oficial)
-2. Instale e abra
-3. Faça login com sua conta GitHub (`Quitoprev`)
+Se precisar recriar, cole `supabase-schema.sql` no SQL Editor.
 
----
+### 2. Criar usuário da organização (se ainda não fez)
+No Supabase → **Authentication** → **Users** → **Add user** → **Create new user**
+- Seu e-mail
+- Senha forte
+- ✅ marque **Auto Confirm User**
 
-## 📁 Passo 2 — Descompactar o projeto
+Esse login é só pro painel.
 
-1. Clique duas vezes em `bt-delas.zip` → vai criar uma pasta `bt-delas`
-2. **Confirme** que dentro dela tem:
-   - 📁 `app/`
-   - 📁 `lib/`
-   - 📁 `public/`
-   - 📄 `package.json`
-   - 📄 `next.config.js`
-   - 📄 `postcss.config.js`
-   - 📄 `tailwind.config.ts`
-   - 📄 `tsconfig.json`
-   - 📄 `README.md`
-   - 📄 `supabase-schema.sql`
-3. **Se faltar alguma coisa, me avise AGORA** antes de seguir.
+### 3. Subir no GitHub
+1. Vá em **github.com** → botão verde **New** (repositório)
+2. Nome: `bt-delas`
+3. Deixe **Private** (recomendado)
+4. ✅ Marque **Add a README file**
+5. Clique **Create repository**
+6. No repo criado, clique em **Add file** → **Upload files**
+7. **Arraste toda a pasta do projeto** (menos `node_modules` se existir) na área de upload
+8. Embaixo, clique **Commit changes**
 
----
+> Dica: antes de subir, **apague** qualquer `.env.local` da pasta. As chaves vão na Vercel, não no Git.
 
-## 🆕 Passo 3 — Criar repositório novo pelo GitHub Desktop
+### 4. Conectar na Vercel
+1. Vá em **vercel.com** → **Add New** → **Project**
+2. Escolha **Continue with GitHub** (se já não estiver conectado)
+3. Encontre `bt-delas` na lista → **Import**
+4. Em **Environment Variables**, adicione duas:
 
-1. No GitHub Desktop: menu **File** → **New Repository**
-2. Preencha:
-   - **Name:** `bt-delas`
-   - **Local path:** escolha onde no Mac (ex: `~/Documents`)
-   - **Initialize this repository with a README:** ✅ marque
-3. Clique **Create Repository**
-4. No topo da janela, botão azul **Publish repository**
-5. Na janela que abre:
-   - **Name:** `bt-delas` (já vem)
-   - **Keep this code private:** ✅ marque (recomendado)
-6. **Publish Repository**
-
-Agora você tem um repo vazio no GitHub, criado certinho.
-
----
-
-## 📂 Passo 4 — Copiar os arquivos do projeto pro repo
-
-1. Abra o Finder → vá na pasta `bt-delas` descompactada (Passo 2)
-2. **Cmd + A** pra selecionar tudo dentro dela
-3. **Cmd + C** pra copiar
-4. Agora abra a pasta do repo que o GitHub Desktop criou (Passo 3, em `~/Documents/bt-delas` ou onde você escolheu)
-5. **Cmd + V** pra colar
-6. Se perguntar "substituir README?", clique **Substituir**
-
----
-
-## ⬆️ Passo 5 — Enviar pro GitHub
-
-1. Volte pro **GitHub Desktop**
-2. Na barra lateral esquerda, você vai ver uma lista de ~10 arquivos novos
-3. Embaixo à esquerda, na caixa **Summary**, escreva: `projeto completo`
-4. Clique no botão azul **Commit to main**
-5. No topo, clique no botão azul **Push origin**
-6. Pronto — todos os arquivos estão no GitHub
-
-Confirme abrindo `github.com/Quitoprev/bt-delas` — deve mostrar `app/`, `lib/`, `package.json`, etc.
-
----
-
-## 🚀 Passo 6 — Conectar na Vercel
-
-1. Entre em **vercel.com**
-2. **Add New** (topo direito) → **Project**
-3. Na lista do GitHub, encontre **bt-delas** → clique **Import**
-4. **IMPORTANTE:** confira os campos:
-   - **Framework Preset:** deve detectar **Next.js** automaticamente ✅
-   - **Root Directory:** `./` (deixe assim)
-   - **Build Command:** DEIXE EM BRANCO
-   - **Output Directory:** DEIXE EM BRANCO
-5. Expanda **Environment Variables** e adicione DUAS:
-
-   | Name | Value |
+   | Nome | Valor |
    |---|---|
    | `NEXT_PUBLIC_SUPABASE_URL` | `https://zegrmnubfjlvokmdfkqe.supabase.co` |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *(sua anon key — a longa que começa com `eyJhbGc...`)* |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *(sua anon key)* |
 
-6. Clique **Deploy**
-7. Aguarde ~1 minuto
-8. Quando terminar, clique no **preview da página** que aparece
+5. Clique **Deploy** → espera 1-2 minutos
+6. Pronto! O site está no ar em `https://bt-delas-XXXX.vercel.app`
+
+### 5. Apontar o domínio `btdelas.online`
+1. No projeto da Vercel → **Settings** → **Domains**
+2. Digite `www.btdelas.online` → **Add**
+3. A Vercel vai mostrar um registro **CNAME** pra você adicionar no DNS
+4. Na **Hostinger**, vá em **Domínios** → `btdelas.online` → **DNS/Nameservers**
+5. Adicione o CNAME que a Vercel mostrou
+6. Também adicione `btdelas.online` (sem www) na Vercel; ela te dá um registro **A** pra adicionar na Hostinger
+7. Em ~15 min o domínio está apontando pra Vercel (às vezes mais rápido)
+
+### 6. Testar
+- `https://www.btdelas.online` → deve mostrar a contagem regressiva até 10/11 às 12h
+- `https://www.btdelas.online/painel` → tela de login
+- Após 10/11 12h, a tela muda sozinha pro formulário de inscrição
 
 ---
 
-## ✅ Se deu certo
+## 🔁 Pra mudar qualquer coisa depois
 
-Você vai ver uma página **laranja** com:
-- Logo "Bt delas"
-- Título "Super 8"
-- Um card branco no meio com **contagem regressiva** até 10/11 às 12h
+1. Edita o arquivo no GitHub (botão lápis)
+2. Salva o commit
+3. A Vercel faz deploy automático em ~30 segundos
 
-**Teste também:** `/painel` no fim da URL → tela de login azul.
+Coisas comuns pra ajustar:
+- **Número do WhatsApp da organização**: em `app/page.tsx`, procure por `5582996001624` e troque pelo seu
+- **Vagas por categoria**: no Supabase SQL Editor, altere a função `limite_categoria`
+- **Data/hora de abertura**: no Supabase, altere `abertura_inscricoes()`
 
 ---
 
-## ❌ Se deu errado em qualquer passo
+## 🎨 Paleta (da camisa oficial)
+- Laranja `#FF6A1A`
+- Azul índigo `#2A2A9E`
+- Pink `#FF3D8B`
+- Amarelo `#F7C948`
 
-**PARE** no passo que deu problema. Tire um print. Me mande com uma mensagem tipo:
+---
 
-> "Travei no Passo X. A tela mostra isso: [print]"
-
-NÃO siga em frente se algo saiu diferente do descrito aqui.
+## 🛠 Dev local (opcional)
+Se um dia quiser testar antes de subir pro ar:
+```bash
+npm install
+cp .env.local.example .env.local  # preenche as chaves
+npm run dev
+```
+Abre em `http://localhost:3000`.
